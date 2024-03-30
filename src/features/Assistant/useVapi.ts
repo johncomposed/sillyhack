@@ -35,7 +35,10 @@ export function useVapi() {
 
 
   useEffect(() => {
-    const onSpeechStart = () => setIsSpeechActive(true);
+    const onSpeechStart = () => {
+      console.log('speech has started')
+      setIsSpeechActive(true);
+    }
     const onSpeechEnd = () => {
       console.log("Speech has ended");
       setIsSpeechActive(false);

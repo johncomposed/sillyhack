@@ -23,3 +23,64 @@
 }
 
 
+.emoji.animate {
+  animation: headTilt 750ms infinite
+}
+
+
+.animate #head {
+  animation: headTilt 750ms infinite
+}
+
+.animate #mouth {
+  animation: mouthSize 250ms infinite;
+}
+
+#head {
+  /* position: absolute; */
+  /* top: 52px; */
+  /* left: 71px; */
+}
+
+.eye {
+  background-color: black;
+  height: 93px;
+  width: 60px;
+  margin: 27px;
+  border-radius: 100%;
+  display: inline-block;
+}
+
+#mouth {
+  background-color: black;
+  height: 1px;
+  width: 370px;
+  display: inline-block;
+  margin-top: 55px;
+}
+
+@keyframes headTilt {  
+  from, to {
+    transform: rotate(10deg);
+  }
+  
+  50% {
+    transform: rotate(-10deg);
+  }
+}
+
+
+@keyframes mouthSize {
+  0% {
+    height: 2px;
+  }
+  
+  50% {
+    height: 40px;
+  }
+  
+  100% {
+    height: 2px;
+  }
+}
+

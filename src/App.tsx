@@ -3,10 +3,11 @@ import { Conversation, VapiButton, vapi } from "./features/Assistant";
 import { useVapi, CALL_STATUS } from "./features/Assistant";
 import { useEffect, useRef, useState } from "react";
 
-
-
 const thinkingEmoji = '🙄'
 const defaultEmoji = '🙂'
+const openEmoji = "😮"
+const closeEmoji = "😐"
+
 const emojiMap = {
   "😮": ["o", "e"],
   "😐": ["b", "p", "m", " "],
@@ -76,79 +77,40 @@ const textShadow = [
 ].join(' ')
 
 
-function Character(props: {latestMessage: string, callStatus: CALL_STATUS}) {
-  const {latestMessage, callStatus} = props;
-  const [msgIndex, setMsgIndex] = useState(0);
-
-  useEffect(() => {
-    console.log('updated msg', latestMessage)
-    setMsgIndex(latestMessage.length);
-  }, [latestMessage])
-
-  const char = latestMessage[latestMessage.length - msgIndex]||'';
-  const emoji = toEmoji(char) || thinkingEmoji;
-
-  // console.log(char, emoji);
-
-  useInterval(() => {
-    setMsgIndex(Math.max(msgIndex-1, 0))
-  }, msgIndex > 0 ? 75 : null)
-
-  // function onMessage(msg: any) {
-  //   const conversation = msg.conversation || [];
-  //   const isUpdate = msg.type === "conversation-update";
-  //   if (!isUpdate || !conversation.length) return;
-  //   const lastMsg = conversation.slice(-1)[0];
-
-  //   if (lastMsg.role === 'assistant' && lastMsg.content !== latestMsg) {
-  //     // console.log('M: ', msg)
-  //     setLatest(lastMsg.content);
-  //     setMsgIndex(lastMsg.content.length);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   vapi.on("message", onMessage);
-  //   return () => {
-  //     vapi.off("message", onMessage);
-  //   };
-  // });
-
-
-  return (
-    <div className={clsx("emoji", {
-      'wave-hand': callStatus === CALL_STATUS.ACTIVE
-    })} style={{textShadow, fontSize: 300, filter: 'hue-rotate(220deg)'}}>
-      {emoji}
-    </div>
-  )
-}
-
 
 function getRandomBetween(min:number, max:number) {
   return Math.random() * (max - min) + min;
 }
 
 function App() {
-  const [randomStop, setRandomStop] = useState(getRandomBetween(4000, 7000))
-  const { toggleCall, messages, callStatus, activeTranscript, isMuted, toggleMute, audioLevel } = useVapi();
+  const [randomStop, setRandomStop] = useState<number|null>(null)
+  const { isSpeechActive, toggleCall, messages, callStatus, activeTranscript, isMuted, toggleMute, audioLevel } = useVapi();
   const assistantMessages = messages.filter(m => m.role === "assistant");
+  const [emoji, setEmoji] = useState(defaultEmoji)
+  const activeButNotTalking = callStatus === CALL_STATUS.ACTIVE && !isSpeechActive;
 
-  useEffect(() => {
-    console.log(messages)
-    setRandomStop(getRandomBetween(4000, 7000));
-  }, [assistantMessages.length])
+  // useEffect(() => {
+  //   const muted = isMuted();
+  //   // if (muted || callStatus!== CALL_STATUS.ACTIVE || )
+  //   setRandomStop(getRandomBetween(4000, 7000));
+  // }, [callStatus, isSpeechActive])
 
 
-  useTimeout(() => {
-    console.log('TIMEOUT', randomStop);
-    if (!isMuted()) toggleMute(true);
-  }, randomStop)
+  useInterval(() => {
+    setEmoji(emoji === closeEmoji ? openEmoji : closeEmoji);
+  }, isSpeechActive ? 150 : null)
 
+  useInterval(() => {
+    setEmoji(emoji === defaultEmoji ? (getRandomBetween(0,4) > 3 ? thinkingEmoji : defaultEmoji) : defaultEmoji);
+  }, activeButNotTalking ? 2000 : null)
 
   return (
     <main className="flex h-screen relative flex-col items-center justify-center">
-      <Character latestMessage={assistantMessages.slice(-1)[0]?.content || ''} callStatus={callStatus} />
+      <div className={clsx("emoji", {
+        'animate': isSpeechActive
+      })} style={{textShadow, fontSize: 300, filter: 'hue-rotate(220deg)'}}>
+        {emoji}
+      </div>
       <div
         id="card-footer"
         className="flex justify-center absolute bottom-0 left-0 right-0 py-4"
